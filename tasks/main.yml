@@ -1,0 +1,35 @@
+---
+# Add Redis tasks
+
+- name: Download latest stable release from Redis.io and intall redis
+  become: yes
+  become_method: sudo
+  become_user: root
+  shell: "{{ item }}"
+  with_items:
+    # Download stable redis
+    - curl -sSL http://download.redis.io/releases/redis-stable.tar.gz -o /tmp/redis.tar.gz
+    - mkdir -p /tmp/redis
+    - tar -xzf /tmp/redis.tar.gz -C /tmp/redis --strip-components=1
+
+    # Install redis
+    - make -C /tmp/redis
+    - make -C /tmp/redis install
+    - echo -n | /tmp/redis/utils/install_server.sh
+    - rm -rf /tmp/redis*
+
+    # Make sure redis is allocated virtual memory regardless
+    - sysctl vm.overcommit_memory=1
+
+    # Uncomment bind address in redis config
+    - sed -ie 's/# bind 127.0.0.1/bind 127.0.0.1/g' /etc/redis/6379.conf
+
+    # Require password for server access
+    - sed -ie 's/# requirepass foobared/# requirepass {{ redis_password }}/g' {{ redis_config_path }}
+
+    # Update permissions
+    - chmod 700 /var/lib/redis
+    - chown {{ redis_user }}:root {{ redis_config_path }}
+    - chmod 600 {{ redis_config_path }}
+  notify: restart redis
+  tags: redis

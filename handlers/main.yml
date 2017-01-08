@@ -1,0 +1,5 @@
+---
+# Redis handlers
+- name: restart redis
+  service: name=redis_6379 state=restarted
+  

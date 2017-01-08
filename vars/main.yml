@@ -1,0 +1,5 @@
+---
+# Redis variables
+redis_password: "PASSWORDHERE"
+redis_user: "USERHERE"
+redis_config_path: "/etc/redis/6379.conf"
